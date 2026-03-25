@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout title="Blog">
+  <h1>Blog</h1>
+  <ul>
+    {posts.map(post => (
+      <li>
+          <a href={`/blog/${post.id.replace(/\.md$/, '')}`}>{post.data.title}</a>
+        <span> — {post.data.date.toLocaleDateString()}</span>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>
