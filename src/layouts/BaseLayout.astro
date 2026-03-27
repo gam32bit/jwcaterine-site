@@ -1,5 +1,8 @@
 ---
 const { title } = Astro.props;
+import '../styles/global.css';
+import WaveBackground from '../components/WaveBackground.astro';
+import { ClientRouter } from 'astro:transitions';
 ---
 
 <html lang="en">
@@ -7,8 +10,10 @@ const { title } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | Joe Caterine</title>
+    <ClientRouter />
   </head>
   <body>
+      <WaveBackground />
     <nav>
       <a href="/">Home</a>
       <a href="/about">About</a>
