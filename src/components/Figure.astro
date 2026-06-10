@@ -1,0 +1,26 @@
+---
+import { Image } from 'astro:assets';
+
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+  caption?: string;
+  float?: 'left' | 'right';
+  width?: number;
+}
+
+const { src, alt, caption, float, width } = Astro.props;
+const className = float ? `figure figure--float-${float}` : 'figure';
+const style = width ? `--fig-w:${width}px` : undefined;
+---
+
+<figure class={className} style={style}>
+  <Image src={src} alt={alt} widths={[320, 640, 960]} sizes="(max-width: 720px) 100vw, 640px" />
+  {caption ? (
+    <figcaption>{caption}</figcaption>
+  ) : (
+    Astro.slots.has('default') && (
+      <figcaption><slot /></figcaption>
+    )
+  )}
+</figure>

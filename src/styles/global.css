@@ -42,6 +42,7 @@ a {
 
 h1 {
   font-size: 3rem;
+  line-height: 1.15;
   margin-bottom: 0.5rem;
 }
 
@@ -55,4 +56,65 @@ footer {
   padding-top: 1.5rem;
   color: #64748b;
   font-size: 0.875rem;
+}
+
+article::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+article img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.5rem auto;
+  border-radius: 4px;
+}
+
+.figure {
+  margin: 1.5rem auto;
+  max-width: min(var(--fig-w, 100%), 100%);
+}
+
+.figure img {
+  margin: 0 auto;
+}
+
+.figure figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.figure--float-left,
+.figure--float-right {
+  max-width: var(--fig-w, 320px);
+  margin: 0.5rem 0;
+}
+
+.figure--float-left {
+  float: left;
+  margin-right: 1.25rem;
+}
+
+.figure--float-right {
+  float: right;
+  margin-left: 1.25rem;
+}
+
+.post-date {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 540px) {
+  .figure--float-left,
+  .figure--float-right {
+    float: none;
+    max-width: 100%;
+    margin: 1.5rem auto;
+  }
 }

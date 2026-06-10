@@ -1,5 +1,11 @@
 ## 2026-05-09
 
+Messed around with waves a bit, got it to a place I like it. Could probably be
+more wave like but it's mostly good. Would like to add interactive element at
+some point.
+
+Also removed leftover integration with journal stuff. Next thing to think about
+will be the blog workflow, and/or the project portfolio.
 
 ##2026-03-28 - adding post via journal scripts
 

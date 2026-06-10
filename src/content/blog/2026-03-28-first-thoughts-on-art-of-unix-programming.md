@@ -5,8 +5,6 @@ description: How coding with Claude made me want to learn the Unix Philosophy
 draft: false
 ---
 
-# First Thoughts on Art of Unix Programming
-
 Source: [The Art of Unix Programming](http://www.catb.org/esr/writings/taoup/html/index.html)
 
 I've spent the past few months of playing around with Claude Code to build CLI tools for my own personal use. Inevitably, these tools have gotten messy. I'll think of small features I want to add over time, and at some point it becomes unclear what the tool is even for.

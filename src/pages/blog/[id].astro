@@ -1,12 +1,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
-import { render } from 'astro:content';
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
   return posts.map(post => ({
-  params: { id: post.id },
+    params: { id: post.id },
     props: { post },
   }));
 }
@@ -16,7 +16,12 @@ const { Content } = await render(post);
 ---
 
 <BaseLayout title={post.data.title}>
-  <h1>{post.data.title}</h1>
-  <p>{post.data.date.toLocaleDateString()}</p>
-  <Content />
+  <article>
+    <h1>{post.data.title}</h1>
+    <p class="post-date">{post.data.date.toLocaleDateString()}</p>
+    {post.data.hero && (
+      <Image src={post.data.hero} alt={post.data.heroAlt ?? ''} widths={[480, 720, 1080]} sizes="(max-width: 720px) 100vw, 720px" />
+    )}
+    <Content />
+  </article>
 </BaseLayout>
