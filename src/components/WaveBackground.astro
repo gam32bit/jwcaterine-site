@@ -22,23 +22,38 @@
     canvas._waveInit = true;
     const ctx = canvas.getContext('2d')!;
 
+    // Draw in CSS pixels regardless of devicePixelRatio, so every tuning
+    // constant below means the same visual size on every screen.
+    let W = 0;
+    let H = 0;
     function resize() {
-      canvas.width = window.innerWidth * devicePixelRatio;
-      canvas.height = window.innerHeight * devicePixelRatio;
+      const dpr = window.devicePixelRatio || 1;
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     resize();
     window.addEventListener('resize', resize);
 
-    // Pseudo-gravity in canvas-pixel units. Tune this to speed up/slow down the whole field.
-    const GRAVITY = 0.005;
+    // Pseudo-gravity in CSS-px/s². At this field's ~10 px-per-meter scale that
+    // is close to real gravity, putting wave periods in the 3–13 s range of an
+    // actual sea. All speeds scale together as sqrt(GRAVITY).
+    const GRAVITY = 95;
 
     // Gerstner wave components, summed to make one shared ocean surface.
-    // Different wavelengths whose periods don't share a low common multiple => non-repeating profile.
+    // The two longest wavelengths are deliberately close together: their beat
+    // modulates the surface so waves arrive in groups ("sets", ~1 min cycle)
+    // instead of a uniform wiggle. Amplitudes fall off steeply — one dominant
+    // band reads as waves; equal amplitudes read as noise.
+    // Loop-safety: sum of steepness*amp*k (times each layer's ampScale*kScale)
+    // must stay < 1, or crests curl over into self-intersecting loops.
     const components = [
-      { wavelength: 380, amp: 22, steepness: 0.50, phase: 0.0 },
-      { wavelength: 220, amp:  9, steepness: 0.30, phase: 1.7 },
-      { wavelength: 130, amp:  3, steepness: 0.20, phase: 3.2 },
-      { wavelength:  70, amp: 1.5, steepness: 0.15, phase: 5.0 },
+      { wavelength: 520, amp: 15, steepness: 1.6, phase: 0.0 },
+      { wavelength: 430, amp: 11, steepness: 1.6, phase: 2.3 },
+      { wavelength: 240, amp:  4, steepness: 1.2, phase: 4.1 },
+      { wavelength: 120, amp: 1.3, steepness: 0.8, phase: 1.0 },
     ].map(cmp => {
       const k = (2 * Math.PI) / cmp.wavelength;
       // Deep-water dispersion: longer waves travel faster, like real swell.
@@ -48,45 +63,47 @@
     // Big slow swell: one giant wavelength shared by every layer at full strength,
     // so all lines rise and fall together as a single roll passes across.
     const SWELL = (() => {
-      const wavelength = 2000;
+      const wavelength = 2400;
       const k = (2 * Math.PI) / wavelength;
       return {
         k,
         omega: Math.sqrt(GRAVITY * k),
-        amp: 32,
-        steepness: 0.4,
+        amp: 26,
+        steepness: 0.6,
         phase: 0,
       };
     })();
 
-    // Each visual band reuses the shared wave field, but with its own k/omega/phase
-    // perturbation so the lines don't all crest at the same x or drift in lockstep.
+    // Each band is the same surface seen at increasing distance: farther bands
+    // are fainter (ampScale down), perspective-compressed (kScale up), and
+    // offset along the wave direction (phaseShift). Temporal frequency is NOT
+    // scaled — distance changes how big a wave looks, not how fast it bobs —
+    // which keeps the bands reading as one ocean instead of independent lines.
     const layers = [
-      { y: 0.82, ampScale: 1.00, kScale: 1.00, omegaScale: 1.00, phaseShift: 0.0, color: 'rgba(40,110,170,0.45)', width: 2.5 },
-      { y: 0.68, ampScale: 0.78, kScale: 0.85, omegaScale: 1.15, phaseShift: 1.1, color: 'rgba(60,140,190,0.35)', width: 2.0 },
-      { y: 0.55, ampScale: 0.62, kScale: 1.20, omegaScale: 0.90, phaseShift: 2.6, color: 'rgba(80,165,205,0.28)', width: 1.8 },
-      { y: 0.42, ampScale: 0.50, kScale: 0.95, omegaScale: 1.30, phaseShift: 4.0, color: 'rgba(100,185,215,0.22)', width: 1.5 },
-      { y: 0.30, ampScale: 0.40, kScale: 1.40, omegaScale: 0.75, phaseShift: 5.5, color: 'rgba(120,195,220,0.16)', width: 1.2 },
-      { y: 0.20, ampScale: 0.32, kScale: 1.10, omegaScale: 1.05, phaseShift: 0.7, color: 'rgba(140,205,230,0.10)', width: 1.0 },
+      { y: 0.82, ampScale: 1.00, kScale: 1.00, phaseShift: 0.0, color: 'rgba(40,110,170,0.45)', width: 2.5 },
+      { y: 0.68, ampScale: 0.78, kScale: 1.07, phaseShift: 1.1, color: 'rgba(60,140,190,0.35)', width: 2.0 },
+      { y: 0.55, ampScale: 0.62, kScale: 1.15, phaseShift: 2.6, color: 'rgba(80,165,205,0.28)', width: 1.8 },
+      { y: 0.42, ampScale: 0.50, kScale: 1.24, phaseShift: 4.0, color: 'rgba(100,185,215,0.22)', width: 1.5 },
+      { y: 0.30, ampScale: 0.40, kScale: 1.34, phaseShift: 5.5, color: 'rgba(120,195,220,0.16)', width: 1.2 },
+      { y: 0.20, ampScale: 0.32, kScale: 1.45, phaseShift: 0.7, color: 'rgba(140,205,230,0.10)', width: 1.0 },
     ];
 
-    let t = 0;
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function draw(now: number) {
+      // rAF timestamp in ms -> seconds, so speed is independent of refresh rate.
+      const t = now / 1000;
+      ctx.clearRect(0, 0, W, H);
       for (const l of layers) {
         ctx.beginPath();
-        const baseY = canvas.height * l.y;
+        const baseY = H * l.y;
         // Sweep the surface parameter past the canvas edges since x is displaced.
         const margin = 80;
         let first = true;
-        for (let u = -margin; u <= canvas.width + margin; u += 3) {
+        for (let u = -margin; u <= W + margin; u += 2) {
           let xDisp = 0;
           let yDisp = 0;
           for (const w of components) {
             const k = w.k * l.kScale;
-            const omega = w.omega * l.omegaScale;
-            const theta = k * u - omega * t + w.phase + l.phaseShift;
+            const theta = k * u - w.omega * t + w.phase + l.phaseShift;
             xDisp -= w.steepness * w.amp * Math.sin(theta);
             yDisp += w.amp * Math.cos(theta);
           }
@@ -94,7 +111,9 @@
           const swellX = -SWELL.steepness * SWELL.amp * Math.sin(swellTheta);
           const swellY = SWELL.amp * Math.cos(swellTheta);
           const x = u + xDisp * l.ampScale + swellX;
-          const y = baseY + yDisp * l.ampScale + swellY;
+          // Canvas y grows downward, so subtract elevation — otherwise the
+          // Gerstner profile renders upside down (sharp troughs, flat crests).
+          const y = baseY - (yDisp * l.ampScale + swellY);
           if (first) {
             ctx.moveTo(x, y);
             first = false;
@@ -106,10 +125,9 @@
         ctx.lineWidth = l.width;
         ctx.stroke();
       }
-      t++;
       requestAnimationFrame(draw);
     }
 
-    draw();
+    requestAnimationFrame(draw);
   }
 </script>
