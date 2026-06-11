@@ -29,10 +29,10 @@ Personal website for Joe Caterine (jwcaterine.com). Astro 6.x static site built 
 
 **Wave background** (`src/components/WaveBackground.astro`). 2D canvas Gerstner-wave animation, drawn as a stack of stroked lines. Tunable knobs in order of visual impact:
 
-- `components[]` — wave components summed per layer. The two longest wavelengths are deliberately close so their beat makes waves arrive in groups ("sets"); amplitudes fall off steeply so one band dominates (equal amps read as noise). Keep `sum(steepness*amp*k)` < 1 per layer or crests loop over themselves.
+- `components[]` — wave components summed per layer. The two longest wavelengths are deliberately close so their beat makes waves arrive in groups ("sets"); amplitudes fall off steeply so one band dominates (equal amps read as noise). Steepness is auto-clamped in `draw()` so `sum(steepness*amp*k)` stays < 1 per layer even at slider extremes (past 1, crests loop over themselves).
 - `SWELL` — single very-long-wavelength wave applied uniformly to every layer so the whole field rises and falls together.
 - `layers[]` — per-band `y`/color/`width`, plus `ampScale`/`kScale`/`phaseShift` modeling the same surface at increasing distance (farther = fainter, perspective-compressed, offset). Temporal frequency is intentionally NOT scaled per layer.
-- `GRAVITY` — global speed scalar in CSS-px/s² (time `t` is rAF seconds, so speed is refresh-rate independent); deep-water dispersion is `omega = sqrt(GRAVITY * k)`, so a single value drives both the swell and the chop at physically consistent speeds.
+- `params` — live-tunable `{ gravity, waves, chop, swell }`, exposed as `canvas._waveParams`. The home page (`index.astro`) renders bottom-left sliders that mutate it; they're wired on `astro:page-load`, and tweaks persist across navigations because the canvas has `transition:persist`. `gravity` is CSS-px/s²; deep-water dispersion `omega = sqrt(gravity * k)` drives swell and chop at physically consistent speeds. Phase is accumulated per-frame from a real-seconds `dt` (refresh-rate independent), which is what lets the gravity slider change speed smoothly instead of teleporting the field.
 
 The canvas has `transition:persist` so it survives ClientRouter view transitions. The `<script>` re-runs on every navigation (Astro behavior), so it guards with a `_waveInit` flag on the canvas element to avoid double-binding the `resize` listener and double-running the rAF loop.
 
