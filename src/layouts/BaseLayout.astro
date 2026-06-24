@@ -10,6 +10,12 @@ import { ClientRouter } from 'astro:transitions';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | Joe Caterine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Yellowtail&display=swap"
+      rel="stylesheet"
+    />
     <ClientRouter />
   </head>
   <body>
@@ -25,7 +31,6 @@ import { ClientRouter } from 'astro:transitions';
     </main>
 
     <footer>
-      <p>&copy; {new Date().getFullYear()} Joe Caterine</p>
     </footer>
   </body>
 </html>

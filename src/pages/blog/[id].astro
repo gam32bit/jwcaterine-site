@@ -13,15 +13,130 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
+
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const currentTags = post.data.tags ?? [];
+const related = allPosts
+  .filter(p => p.id !== post.id)
+  .map(p => ({ p, shared: (p.data.tags ?? []).filter(t => currentTags.includes(t)).length }))
+  .filter(({ shared }) => shared > 0)
+  .sort((a, b) => b.shared - a.shared || b.p.data.date.valueOf() - a.p.data.date.valueOf())
+  .slice(0, 3)
+  .map(({ p }) => p);
 ---
 
 <BaseLayout title={post.data.title}>
   <article>
     <h1>{post.data.title}</h1>
-    <p class="post-date">{post.data.date.toLocaleDateString()}</p>
+    <div class="post-meta">
+      <span class="post-date">{post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+      {currentTags.length > 0 && (
+        <span class="tags">
+          {currentTags.map(tag => <span class="tag">{tag}</span>)}
+        </span>
+      )}
+    </div>
     {post.data.hero && (
       <Image src={post.data.hero} alt={post.data.heroAlt ?? ''} widths={[480, 720, 1080]} sizes="(max-width: 720px) 100vw, 720px" />
     )}
     <Content />
+
+    {related.length > 0 && (
+      <aside class="related">
+        <h2 class="related__heading">Related</h2>
+        {related.map(p => (
+          <a class="related-post" href={`/blog/${p.id}`}>
+            <span class="related-post__title">{p.data.title}</span>
+            <span class="related-post__desc">{p.data.description}</span>
+          </a>
+        ))}
+      </aside>
+    )}
+
+    <p class="byline"><a href="/">JW Caterine</a></p>
   </article>
 </BaseLayout>
+
+<style>
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .post-date {
+    color: #64748b;
+    font-size: 0.95rem;
+  }
+
+  .tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.5rem;
+    background: #1e3a5f;
+    color: #7cb8d8;
+    border-radius: 3px;
+    letter-spacing: 0.02em;
+  }
+
+  .related {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #1e3a5f;
+  }
+
+  .related__heading {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #64748b;
+    margin-bottom: 1.25rem;
+  }
+
+  .related-post {
+    display: block;
+    margin-bottom: 1.1rem;
+    text-decoration: none;
+  }
+
+  .related-post__title {
+    display: block;
+    color: #e2e8f0;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    transition: color 0.15s;
+  }
+
+  .related-post:hover .related-post__title {
+    color: #7cb8d8;
+  }
+
+  .related-post__desc {
+    display: block;
+    color: #64748b;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .byline {
+    margin-top: 2.5rem;
+    font-size: 1.25rem;
+  }
+
+  .byline a {
+    font-family: 'Yellowtail', cursive;
+    color: #64748b;
+    text-decoration: none;
+  }
+
+  .byline a:hover {
+    color: #94a3b8;
+  }
+</style>

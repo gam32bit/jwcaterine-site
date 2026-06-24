@@ -8,12 +8,89 @@ posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 <BaseLayout title="Blog">
   <h1>Blog</h1>
-  <ul>
+  <div class="post-list">
     {posts.map(post => (
-      <li>
+      <article class="post-card">
+        <h2 class="post-card__title">
           <a href={`/blog/${post.id}`}>{post.data.title}</a>
-        <span> — {post.data.date.toLocaleDateString()}</span>
-      </li>
+        </h2>
+        <div class="post-card__meta">
+          <span class="post-card__date">{post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          {post.data.tags && post.data.tags.length > 0 && (
+            <span class="post-card__tags">
+              {post.data.tags.map(tag => <span class="tag">{tag}</span>)}
+            </span>
+          )}
+        </div>
+        <p class="post-card__desc">{post.data.description}</p>
+      </article>
     ))}
-  </ul>
+  </div>
 </BaseLayout>
+
+<style>
+  h1 {
+    margin-bottom: 2.5rem;
+  }
+
+  .post-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .post-card {
+    padding-top: 0;
+  }
+
+  .post-card__title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 0.3rem;
+  }
+
+  .post-card__title a {
+    color: #e2e8f0;
+    text-decoration: none;
+  }
+
+  .post-card__title a:hover {
+    color: #7cb8d8;
+  }
+
+  .post-card__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.6rem;
+  }
+
+  .post-card__date {
+    color: #64748b;
+    font-size: 0.85rem;
+  }
+
+  .post-card__tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.5rem;
+    background: #1e3a5f;
+    color: #7cb8d8;
+    border-radius: 3px;
+    letter-spacing: 0.02em;
+  }
+
+  .post-card__desc {
+    color: #94a3b8;
+    font-size: 0.975rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+  }
+</style>

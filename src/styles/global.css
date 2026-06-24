@@ -6,10 +6,24 @@
   padding: 0;
 }
 
+html {
+  /* Always show the vertical scrollbar so the auto-centered 720px column
+     doesn't jump sideways when navigating to a tall page (e.g. the blog
+     listing) that would otherwise add one. This forces `html` itself to be the
+     scroll container — `scrollbar-gutter` on `html` does NOT work here because
+     the default `overflow: visible` propagates the real scrollbar to <body>,
+     so the gutter and the scrollbar end up double-counted on tall pages. */
+  overflow-y: scroll;
+  /* Bump the base size up from the 16px default: Crimson Pro runs small per em,
+     and every text size in the site is in rem, so this scales the whole type
+     scale (headings, body, dates, the cursive name) proportionally. */
+  font-size: 125%;
+}
+
 body {
   background: #0c1929;
   color: #e2e8f0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Crimson Pro', Georgia, 'Times New Roman', serif;
   line-height: 1.7;
   min-height: 100vh;
   padding: 2rem;

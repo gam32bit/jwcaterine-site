@@ -3,6 +3,7 @@ title: Why I Stopped Using Journal Apps
 date: 2026-01-28
 description: Why I ditched Notion and ChatGPT for plain markdown files on my own computer — and how journal apps make you self-censor without realizing it.
 draft: false
+tags: [productivity]
 ---
 
 Journaling is something I do almost every day to help manage my mental health. If you're reading this, you probably journal too and have used some of the journal apps that are out there.
