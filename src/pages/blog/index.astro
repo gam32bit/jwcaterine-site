@@ -4,19 +4,48 @@ import { getCollection } from 'astro:content';
 
 const posts = await getCollection('blog', ({ data }) => !data.draft);
 posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const tagCounts = new Map<string, number>();
+for (const post of posts) {
+  for (const tag of post.data.tags) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+}
+const tags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 ---
 
-<BaseLayout title="Blog">
+<BaseLayout title="Blog" description="Writing about side projects, small digital tools, data, and the web.">
   <h1>Blog</h1>
+
+  <div class="blog-controls">
+    <input
+      id="post-search"
+      type="search"
+      placeholder="Search posts…"
+      aria-label="Search posts"
+      autocomplete="off"
+    />
+    <div class="tag-cloud" role="group" aria-label="Filter posts by tag">
+      {tags.map(([tag, count]) => (
+        <button type="button" class="tag-filter" data-tag={tag} aria-pressed="false">
+          {tag} <span class="tag-filter__count">{count}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+
   <div class="post-list">
     {posts.map(post => (
-      <article class="post-card">
+      <article
+        class="post-card"
+        data-id={post.id}
+        data-tags={post.data.tags.join('||')}
+        data-search={`${post.data.title} ${post.data.description} ${post.data.tags.join(' ')}`.toLowerCase()}
+      >
         <h2 class="post-card__title">
           <a href={`/blog/${post.id}`}>{post.data.title}</a>
         </h2>
         <div class="post-card__meta">
-          <span class="post-card__date">{post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-          {post.data.tags && post.data.tags.length > 0 && (
+          <span class="post-card__date">{post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</span>
+          {post.data.tags.length > 0 && (
             <span class="post-card__tags">
               {post.data.tags.map(tag => <span class="tag">{tag}</span>)}
             </span>
@@ -25,12 +54,77 @@ posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
         <p class="post-card__desc">{post.data.description}</p>
       </article>
     ))}
+    <p id="no-results" hidden>No posts match — try clearing the search or tag filter.</p>
   </div>
 </BaseLayout>
 
 <style>
   h1 {
+    margin-bottom: 2rem;
+  }
+
+  .blog-controls {
+    display: grid;
+    gap: 1rem;
     margin-bottom: 2.5rem;
+  }
+
+  #post-search {
+    width: 100%;
+    max-width: 24rem;
+    padding: 0.4rem 0.75rem;
+    font: inherit;
+    font-size: 0.95rem;
+    color: #e2e8f0;
+    background: rgba(30, 58, 95, 0.35);
+    border: 1px solid #4d688a;
+    border-radius: 4px;
+  }
+
+  #post-search::placeholder {
+    color: #7d8ea6;
+    opacity: 1;
+  }
+
+  #post-search:focus {
+    outline: 2px solid #7cb8d8;
+    outline-offset: 2px;
+  }
+
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tag-filter {
+    font: inherit;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.65rem;
+    background: #1e3a5f;
+    color: #7cb8d8;
+    border: none;
+    border-radius: 3px;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    cursor: pointer;
+  }
+
+  .tag-filter:hover {
+    background: #182f4d;
+  }
+
+  .tag-filter[aria-pressed='true'] {
+    background: #7cb8d8;
+    color: #0c1929;
+  }
+
+  .tag-filter__count {
+    margin-left: 0.15rem;
+  }
+
+  #no-results {
+    color: #94a3b8;
   }
 
   .post-list {
@@ -68,8 +162,9 @@ posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
   }
 
   .post-card__date {
-    color: #64748b;
+    color: #7d8ea6;
     font-size: 0.85rem;
+    line-height: 1;
   }
 
   .post-card__tags {
@@ -85,6 +180,7 @@ posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
     color: #7cb8d8;
     border-radius: 3px;
     letter-spacing: 0.02em;
+    line-height: 1;
   }
 
   .post-card__desc {
@@ -94,3 +190,73 @@ posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
     margin-bottom: 0;
   }
 </style>
+
+<script>
+  // Client-side search + tag filter over the server-rendered post list.
+  // Title/description/tags match instantly from data attributes; full post
+  // text lazy-loads from /search.json on the first keystroke. Wired on
+  // astro:page-load with a _wired guard, same pattern as the home-page
+  // sliders (the list is fresh DOM after every client-side navigation).
+  function wirePostFilter() {
+    const list = document.querySelector('.post-list') as (HTMLElement & { _wired?: boolean }) | null;
+    const searchEl = document.getElementById('post-search') as HTMLInputElement | null;
+    if (!list || !searchEl || list._wired) return;
+    list._wired = true;
+
+    const cards = [...list.querySelectorAll<HTMLElement>('.post-card')];
+    const buttons = [...document.querySelectorAll<HTMLButtonElement>('.tag-filter')];
+    const noResults = document.getElementById('no-results')!;
+    let bodies: Record<string, string> | null = null;
+    let activeTag: string | null = null;
+
+    function apply() {
+      const q = searchEl!.value.trim().toLowerCase();
+      let shown = 0;
+      for (const card of cards) {
+        const tagOk = !activeTag || (card.dataset.tags ?? '').split('||').includes(activeTag);
+        const hay = (card.dataset.search ?? '') + ' ' + (bodies?.[card.dataset.id ?? ''] ?? '');
+        const match = tagOk && (!q || hay.includes(q));
+        card.hidden = !match;
+        if (match) shown++;
+      }
+      noResults.hidden = shown > 0;
+      // Keep ?tag= in the URL so filtered views are shareable/back-button safe.
+      const url = new URL(location.href);
+      if (activeTag) url.searchParams.set('tag', activeTag);
+      else url.searchParams.delete('tag');
+      history.replaceState(history.state, '', url);
+    }
+
+    function setTag(tag: string | null) {
+      activeTag = tag;
+      for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.tag === tag));
+      apply();
+    }
+
+    async function ensureBodies() {
+      if (bodies) return;
+      bodies = {};
+      try {
+        const res = await fetch('/search.json');
+        for (const p of await res.json()) bodies[p.id] = `${p.title} ${p.body}`.toLowerCase();
+        apply(); // re-filter now that full text is available
+      } catch {
+        // network hiccup: search still works on title/description/tags
+      }
+    }
+
+    searchEl.addEventListener('input', () => {
+      ensureBodies();
+      apply();
+    });
+    for (const btn of buttons) {
+      btn.addEventListener('click', () => setTag(activeTag === btn.dataset.tag ? null : btn.dataset.tag ?? null));
+    }
+
+    // Deep links: tag chips on post pages point at /blog/?tag=…
+    const initTag = new URL(location.href).searchParams.get('tag');
+    if (initTag && buttons.some(b => b.dataset.tag === initTag)) setTag(initTag);
+  }
+  wirePostFilter();
+  document.addEventListener('astro:page-load', wirePostFilter);
+</script>

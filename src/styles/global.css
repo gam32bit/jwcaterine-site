@@ -68,14 +68,22 @@ footer {
   max-width: 720px;
   margin: 3rem auto 0;
   padding-top: 1.5rem;
-  color: #64748b;
+  color: #7d8ea6;
   font-size: 0.875rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 article::after {
   content: '';
   display: block;
   clear: both;
+}
+
+article ul,
+article ol {
+  padding-left: 1.5rem;
 }
 
 article img {
@@ -119,7 +127,7 @@ article img {
 }
 
 .post-date {
-  color: #64748b;
+  color: #7d8ea6;
   font-size: 0.95rem;
   margin-bottom: 2rem;
 }

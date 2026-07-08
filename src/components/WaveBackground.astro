@@ -20,6 +20,7 @@
   const canvas = document.getElementById('wave-bg') as HTMLCanvasElement & {
     _waveInit?: boolean;
     _waveParams?: { gravity: number; waves: number; chop: number; swell: number };
+    _waveRedraw?: () => void;
   };
   if (!canvas._waveInit) {
     canvas._waveInit = true;
@@ -38,7 +39,10 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', () => {
+      resize();
+      drawOnce(); // repaint the parked frame under prefers-reduced-motion
+    });
 
     // Live-tunable parameters, exposed on the canvas element so page scripts
     // (the home-page sliders) can mutate the running animation. The canvas has
@@ -92,6 +96,20 @@
     // The layer where sum(steepness*amp*k) — the crest-looping criterion — is
     // largest, for the steepness auto-clamp in draw().
     const maxLayerQ = Math.max(...layers.map(l => l.ampScale * l.kScale));
+
+    // Respect prefers-reduced-motion (WCAG 2.2.2): render the wave field as a
+    // single static frame instead of animating. The loop parks itself
+    // (rafId = 0) while the preference is on and resumes if it's lifted;
+    // drawOnce repaints the parked frame after resizes or slider changes.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let rafId = 0;
+    const drawOnce = () => {
+      if (rafId === 0) rafId = requestAnimationFrame(draw);
+    };
+    canvas._waveRedraw = drawOnce;
+    reduceMotion.addEventListener('change', () => {
+      if (!reduceMotion.matches) drawOnce();
+    });
 
     let last: number | undefined;
 
@@ -151,9 +169,9 @@
         ctx.lineWidth = l.width;
         ctx.stroke();
       }
-      requestAnimationFrame(draw);
+      rafId = reduceMotion.matches ? 0 : requestAnimationFrame(draw);
     }
 
-    requestAnimationFrame(draw);
+    rafId = requestAnimationFrame(draw);
   }
 </script>

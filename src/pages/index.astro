@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="Home">
+<BaseLayout title="Home" description="Personal site of Joe Caterine — side projects, small digital tools, and writing about the web.">
 	<h1 class="site-name">JW Caterine</h1>
     <p>Web & Content Strategist | Aspiring Digital Toolmaker</p>
 
@@ -25,11 +25,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   #wave-controls {
     position: fixed;
-    left: 1.5rem;
+    left: 2rem;
+    right: 2rem;
     bottom: 1.5rem;
+    max-width: 720px;
+    margin: 0 auto;
     display: grid;
+    justify-items: start;
     gap: 0.4rem;
-    opacity: 0.45;
+    /* Resting opacity floor: labels (#94a3b8) must keep >= 4.5:1 effective
+       contrast on #0c1929 after the fade — 0.8 lands at 4.85:1. */
+    opacity: 0.8;
     transition: opacity 0.25s ease;
   }
 
@@ -55,7 +61,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     appearance: none;
     width: 100%;
     height: 2px;
-    background: #2d4159;
+    background: #64819f;
     border-radius: 1px;
     outline-offset: 4px;
     cursor: pointer;
@@ -88,7 +94,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   // double-binding).
   function wireWaveControls() {
     const panel = document.getElementById('wave-controls') as (HTMLElement & { _wired?: boolean }) | null;
-    const canvas = document.getElementById('wave-bg') as (HTMLCanvasElement & { _waveParams?: Record<string, number> }) | null;
+    const canvas = document.getElementById('wave-bg') as (HTMLCanvasElement & { _waveParams?: Record<string, number>; _waveRedraw?: () => void }) | null;
     const params = canvas?._waveParams;
     if (!panel || panel._wired || !params) return;
     panel._wired = true;
@@ -99,6 +105,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       input.value = String(params[key]);
       input.addEventListener('input', () => {
         params[key] = Number(input.value);
+        canvas?._waveRedraw?.(); // repaint if parked under prefers-reduced-motion
       });
     }
   }

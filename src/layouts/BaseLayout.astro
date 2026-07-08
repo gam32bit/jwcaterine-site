@@ -1,8 +1,16 @@
 ---
-const { title } = Astro.props;
 import '../styles/global.css';
 import WaveBackground from '../components/WaveBackground.astro';
 import { ClientRouter } from 'astro:transitions';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogType?: string;
+}
+
+const { title, description, ogType = 'website' } = Astro.props;
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefined;
 ---
 
 <html lang="en">
@@ -10,6 +18,16 @@ import { ClientRouter } from 'astro:transitions';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | Joe Caterine</title>
+    {description && <meta name="description" content={description} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title="Joe Caterine" href="/rss.xml" />
+    <meta property="og:site_name" content="Joe Caterine" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta name="twitter:card" content="summary" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -31,6 +49,8 @@ import { ClientRouter } from 'astro:transitions';
     </main>
 
     <footer>
+      <span>© {new Date().getFullYear()} Joe Caterine</span>
+      <a href="/rss.xml">RSS</a>
     </footer>
   </body>
 </html>

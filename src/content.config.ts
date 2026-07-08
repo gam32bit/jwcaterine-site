@@ -4,7 +4,8 @@ import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
   loader: glob({
-    pattern: '**/*.{md,mdx}',
+    // _template/ is the copy-me starter for new drafts, not a post
+    pattern: ['**/*.{md,mdx}', '!_template/**'],
     base: './src/content/blog',
     generateId: ({ entry }) => entry.replace(/(?:\/index)?\.mdx?$/, ''),
   }),

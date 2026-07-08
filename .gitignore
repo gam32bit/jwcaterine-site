@@ -22,3 +22,8 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# local tooling (serena MCP cache, personal screenshot helper + its output)
+.serena/
+_shot.mjs
+.shots/

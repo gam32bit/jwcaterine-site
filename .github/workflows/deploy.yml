@@ -1,0 +1,42 @@
+name: Deploy to GitHub Pages
+
+on:
+  # Deploy on every push to the default branch...
+  push:
+    branches: [main]
+  # ...and allow manual runs from the Actions tab.
+  workflow_dispatch:
+
+# Least-privilege permissions the Pages deploy needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deploy; let in-progress runs finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install, build, and upload the site
+        uses: withastro/action@v6
+        with:
+          # Match package.json engines (>=22.12.0). Bump if you move local dev up.
+          node-version: 22
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
