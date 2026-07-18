@@ -19,7 +19,7 @@
 <script>
   const canvas = document.getElementById('wave-bg') as HTMLCanvasElement & {
     _waveInit?: boolean;
-    _waveParams?: { gravity: number; waves: number; chop: number; swell: number };
+    _waveParams?: { gravity: number; waves: number; chop: number; swell: number; shimmer: number };
     _waveRedraw?: () => void;
   };
   if (!canvas._waveInit) {
@@ -41,6 +41,7 @@
     resize();
     window.addEventListener('resize', () => {
       resize();
+      seedGlints(); // re-cover the new width (hoisted; defined below layers)
       drawOnce(); // repaint the parked frame under prefers-reduced-motion
     });
 
@@ -48,13 +49,14 @@
     // (the home-page sliders) can mutate the running animation. The canvas has
     // transition:persist, so a visitor's tweaks survive client-side navigation.
     const params = {
-      // Pseudo-gravity in CSS-px/s². At this field's ~10 px-per-meter scale 95
+      // Pseudo-gravity in CSS-px/s². At this field's ~10 px-per-meter scale 100
       // is close to real gravity, putting wave periods in the 3–13 s range of
       // an actual sea. All speeds scale together as sqrt(gravity).
-      gravity: 95,
-      waves: 1, // amplitude multiplier on the dominant set-making pair
-      chop: 1, // amplitude multiplier on the short texture components
+      gravity: 100,
+      waves: 1.5, // amplitude multiplier on the dominant set-making pair
+      chop: 1.75, // amplitude multiplier on the short texture components
       swell: 1, // amplitude multiplier on the whole-field swell
+      shimmer: 1, // brightness multiplier on the moonlight glints (0 disables)
     };
     canvas._waveParams = params;
 
@@ -79,23 +81,58 @@
       travel: 0,
     };
 
+    // Night gradient painted behind the lines: near-black sky at the top,
+    // deep blue water below with only a slight violet lean at the bottom.
+    // Hue and lightness drift on two slow incommensurate sine periods (151 s
+    // and 97 s) so the field breathes between a bluer night and a faintly
+    // more violet one without a perceptible loop. Lightness is capped low on
+    // purpose: even at the brightest drift extreme (bottom stop ~l 12%) the
+    // #e2e8f0 body text keeps ~15:1 contrast (WCAG AAA needs 7:1) and the
+    // dimmest UI gray (#7d8ea6 footer) keeps AA.
+    const GRADIENT = [
+      { at: 0.0, h: 224, s: 55, l: 3.8, hDrift: 6, lDrift: 0.8 },
+      { at: 0.45, h: 234, s: 50, l: 6.5, hDrift: 8, lDrift: 1.2 },
+      { at: 1.0, h: 248, s: 46, l: 10.5, hDrift: 10, lDrift: 1.6 },
+    ];
+    let gradPhase = Math.random() * 300; // start at a random point in the drift
+
     // Each band is the same surface seen at increasing distance: farther bands
     // are fainter (ampScale down), perspective-compressed (kScale up), and
     // offset along the wave direction (phaseShift). Temporal frequency is NOT
     // scaled — distance changes how big a wave looks, not how fast it bobs —
     // which keeps the bands reading as one ocean instead of independent lines.
     const layers = [
-      { y: 0.82, ampScale: 1.00, kScale: 1.00, phaseShift: 0.0, color: 'rgba(40,110,170,0.45)', width: 2.5 },
-      { y: 0.68, ampScale: 0.78, kScale: 1.07, phaseShift: 1.1, color: 'rgba(60,140,190,0.35)', width: 2.0 },
-      { y: 0.55, ampScale: 0.62, kScale: 1.15, phaseShift: 2.6, color: 'rgba(80,165,205,0.28)', width: 1.8 },
-      { y: 0.42, ampScale: 0.50, kScale: 1.24, phaseShift: 4.0, color: 'rgba(100,185,215,0.22)', width: 1.5 },
-      { y: 0.30, ampScale: 0.40, kScale: 1.34, phaseShift: 5.5, color: 'rgba(120,195,220,0.16)', width: 1.2 },
-      { y: 0.20, ampScale: 0.32, kScale: 1.45, phaseShift: 0.7, color: 'rgba(140,205,230,0.10)', width: 1.0 },
+      { y: 0.82, ampScale: 1.00, kScale: 1.00, phaseShift: 0.0, color: 'rgba(18,55,112,0.58)', width: 2.5 },
+      { y: 0.68, ampScale: 0.78, kScale: 1.07, phaseShift: 1.1, color: 'rgba(25,70,126,0.45)', width: 2.0 },
+      { y: 0.55, ampScale: 0.62, kScale: 1.15, phaseShift: 2.6, color: 'rgba(32,84,138,0.34)', width: 1.8 },
+      { y: 0.42, ampScale: 0.50, kScale: 1.24, phaseShift: 4.0, color: 'rgba(40,97,148,0.26)', width: 1.5 },
+      { y: 0.30, ampScale: 0.40, kScale: 1.34, phaseShift: 5.5, color: 'rgba(48,108,156,0.19)', width: 1.2 },
+      { y: 0.20, ampScale: 0.32, kScale: 1.45, phaseShift: 0.7, color: 'rgba(58,120,165,0.12)', width: 1.0 },
     ];
 
     // The layer where sum(steepness*amp*k) — the crest-looping criterion — is
     // largest, for the steepness auto-clamp in draw().
     const maxLayerQ = Math.max(...layers.map(l => l.ampScale * l.kScale));
+
+    // Moonlight glints: sparse specks pinned to the same Gerstner surface as
+    // the lines. A glint only lights up while the local surface slope passes
+    // through a narrow band (the facet angle that catches the light), so the
+    // sparkle travels with the waves instead of blinking in place — and a
+    // calmer sea (lower amplitudes) genuinely sparkles less. One set per
+    // layer: nearer water gets bigger, brighter sparks.
+    type Glint = { u: number; ph: number; sp: number };
+    let glints: Glint[][] = [];
+    function seedGlints() {
+      glints = layers.map(() => {
+        const out: Glint[] = [];
+        for (let u = -100; u <= W + 100; u += 20 + Math.random() * 18) {
+          out.push({ u, ph: Math.random() * Math.PI * 2, sp: 0.4 + Math.random() * 0.8 });
+        }
+        return out;
+      });
+    }
+    seedGlints();
+    let shimmerT = 0;
 
     // Respect prefers-reduced-motion (WCAG 2.2.2): render the wave field as a
     // single static frame instead of animating. The loop parks itself
@@ -112,6 +149,36 @@
     });
 
     let last: number | undefined;
+
+    // Scratch output for sampleSurface — reused because it runs thousands of
+    // times per frame; allocating a result object per call would churn GC.
+    const surf = { x: 0, y: 0, slope: 0 };
+
+    // Sample the shared ocean surface for layer l at parameter u: Gerstner
+    // displacement from every component plus the whole-field swell. slope is
+    // d(elevation)/du, used only by the glint pass to find facets that catch
+    // the light. Keeping lines and glints on this one function is what pins
+    // the sparkle to the drawn surface.
+    function sampleSurface(l: (typeof layers)[number], u: number, sharp: number, swellAmp: number) {
+      let xDisp = 0;
+      let yDisp = 0;
+      let slope = 0;
+      for (const w of components) {
+        const amp = w.amp * params[w.group];
+        const kk = w.k * l.kScale;
+        const theta = kk * u - w.travel + w.phase + l.phaseShift;
+        const sinT = Math.sin(theta);
+        xDisp -= w.steepness * sharp * amp * sinT;
+        yDisp += amp * Math.cos(theta);
+        slope -= amp * kk * sinT;
+      }
+      const swellTheta = SWELL.k * u - SWELL.travel;
+      surf.x = u + xDisp * l.ampScale - SWELL.steepness * sharp * swellAmp * Math.sin(swellTheta);
+      // Canvas y grows downward, so subtract elevation — otherwise the
+      // Gerstner profile renders upside down (sharp troughs, flat crests).
+      surf.y = H * l.y - (yDisp * l.ampScale + swellAmp * Math.cos(swellTheta));
+      surf.slope = slope * l.ampScale - swellAmp * SWELL.k * Math.sin(swellTheta);
+    }
 
     function draw(now: number) {
       // Real-seconds timestep (refresh-rate independent), clamped so a
@@ -135,39 +202,59 @@
       for (const w of components) compQak += w.steepness * w.amp * params[w.group] * w.k;
       const sharp = Math.min(1, 0.9 / (compQak * maxLayerQ + swellQak));
 
-      ctx.clearRect(0, 0, W, H);
-      for (const l of layers) {
+      // Drift the night gradient and lay it down first — the opaque fill
+      // doubles as the frame clear.
+      gradPhase += dt;
+      const hueDrift = Math.sin((gradPhase * 2 * Math.PI) / 151);
+      const lightDrift = Math.sin((gradPhase * 2 * Math.PI) / 97);
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      for (const s of GRADIENT) {
+        grad.addColorStop(s.at, `hsl(${s.h + s.hDrift * hueDrift}, ${s.s}%, ${s.l + s.lDrift * lightDrift}%)`);
+      }
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      shimmerT += dt;
+      for (let li = 0; li < layers.length; li++) {
+        const l = layers[li];
         ctx.beginPath();
-        const baseY = H * l.y;
         // Sweep the surface parameter past the canvas edges since x is displaced.
         const margin = 100;
         let first = true;
         for (let u = -margin; u <= W + margin; u += 2) {
-          let xDisp = 0;
-          let yDisp = 0;
-          for (const w of components) {
-            const amp = w.amp * params[w.group];
-            const theta = w.k * l.kScale * u - w.travel + w.phase + l.phaseShift;
-            xDisp -= w.steepness * sharp * amp * Math.sin(theta);
-            yDisp += amp * Math.cos(theta);
-          }
-          const swellTheta = SWELL.k * u - SWELL.travel;
-          const swellX = -SWELL.steepness * sharp * swellAmp * Math.sin(swellTheta);
-          const swellY = swellAmp * Math.cos(swellTheta);
-          const x = u + xDisp * l.ampScale + swellX;
-          // Canvas y grows downward, so subtract elevation — otherwise the
-          // Gerstner profile renders upside down (sharp troughs, flat crests).
-          const y = baseY - (yDisp * l.ampScale + swellY);
+          sampleSurface(l, u, sharp, swellAmp);
           if (first) {
-            ctx.moveTo(x, y);
+            ctx.moveTo(surf.x, surf.y);
             first = false;
           } else {
-            ctx.lineTo(x, y);
+            ctx.lineTo(surf.x, surf.y);
           }
         }
         ctx.strokeStyle = l.color;
         ctx.lineWidth = l.width;
         ctx.stroke();
+
+        // Glint pass, per layer so nearer lines paint over farther sparkle:
+        // short horizontal flecks whose alpha is a gaussian on how squarely
+        // the local facet faces the light, times a slow per-glint twinkle
+        // cubed so glints wink rather than throb. Most frames most glints
+        // fall below the alpha floor and skip the draw entirely. maxA keeps
+        // the sparkle deliberately faint — glimpsed, not glittering.
+        if (params.shimmer > 0) {
+          ctx.fillStyle = '#dce4fb';
+          const maxA = 0.22 * l.ampScale;
+          const len = 3 * l.width;
+          for (const g of glints[li]) {
+            sampleSurface(l, g.u, sharp, swellAmp);
+            const facet = Math.exp(-(((surf.slope - 0.24) / 0.22) ** 2));
+            const twinkle = (0.5 + 0.5 * Math.sin(shimmerT * g.sp + g.ph)) ** 3;
+            const a = maxA * facet * twinkle * params.shimmer;
+            if (a < 0.02) continue;
+            ctx.globalAlpha = a;
+            ctx.fillRect(surf.x - len / 2, surf.y - 0.7, len, 1.4);
+          }
+          ctx.globalAlpha = 1;
+        }
       }
       rafId = reduceMotion.matches ? 0 : requestAnimationFrame(draw);
     }

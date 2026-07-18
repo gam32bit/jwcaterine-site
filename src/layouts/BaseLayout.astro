@@ -47,10 +47,5 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefin
     <main>
       <slot />
     </main>
-
-    <footer>
-      <span>© {new Date().getFullYear()} Joe Caterine</span>
-      <a href="/rss.xml">RSS</a>
-    </footer>
   </body>
 </html>
