@@ -1,0 +1,125 @@
+---
+// Fullscreen image viewer. Click (or Tab to + Enter) any content image to
+// open it in a modal <dialog>; click anywhere or press Esc to close.
+---
+
+<dialog id="lightbox" aria-label="Enlarged image">
+  <img alt="" />
+</dialog>
+
+<style>
+  #lightbox {
+    /* The global `* { margin: 0 }` reset wipes the UA's `dialog { margin: auto }`,
+       which is what centers a modal dialog — restore it. */
+    margin: auto;
+    background: transparent;
+    border: none;
+    padding: 0;
+    max-width: none;
+    max-height: none;
+    cursor: zoom-out;
+  }
+
+  #lightbox img {
+    display: block;
+    max-width: 94vw;
+    max-height: 92vh;
+    width: auto;
+    height: auto;
+    border-radius: 4px;
+  }
+
+  #lightbox::backdrop {
+    background: rgba(5, 4, 14, 0.85);
+  }
+
+  #lightbox[open] {
+    animation: lightbox-in 0.18s ease;
+  }
+
+  @keyframes lightbox-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #lightbox[open] {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  // The dialog is fresh DOM after every ClientRouter navigation, so all
+  // open/close behavior is delegated to document (this module runs once) and
+  // looks the dialog up at event time. Only the per-image tabindex has to be
+  // reapplied per page, on astro:page-load like the blog filter script.
+
+  // A click/keypress counts if it lands on a content image that isn't a link.
+  function lightboxTarget(el: EventTarget | null): HTMLImageElement | null {
+    if (!(el instanceof Element)) return null;
+    const img = el.closest<HTMLImageElement>('main img');
+    return img && !img.closest('a') ? img : null;
+  }
+
+  // Astro serves a downscaled srcset candidate in-page; pick the widest
+  // variant for the fullscreen view.
+  function fullSrc(img: HTMLImageElement): string {
+    let best = '';
+    let bestW = 0;
+    for (const candidate of img.srcset.split(',')) {
+      const [url, desc] = candidate.trim().split(/\s+/);
+      const w = parseInt(desc ?? '') || 0;
+      if (url && w >= bestW) {
+        best = url;
+        bestW = w;
+      }
+    }
+    return best || img.currentSrc || img.src;
+  }
+
+  function open(source: HTMLImageElement) {
+    const box = document.getElementById('lightbox');
+    if (!(box instanceof HTMLDialogElement)) return;
+    const img = box.querySelector('img')!;
+    img.removeAttribute('src'); // drop the previous image so it can't flash
+    img.src = fullSrc(source);
+    img.alt = source.alt;
+    box.showModal();
+  }
+
+  document.addEventListener('click', e => {
+    const box = document.getElementById('lightbox');
+    if (box instanceof HTMLDialogElement && box.open) {
+      // The modal makes the rest of the page inert, so any click — image,
+      // backdrop — closes it.
+      box.close();
+      return;
+    }
+    const img = lightboxTarget(e.target);
+    if (img) open(img);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const img = lightboxTarget(e.target);
+    if (img) {
+      e.preventDefault(); // keep Space from scrolling the page
+      open(img);
+    }
+  });
+
+  // Make content images keyboard-reachable; role=button announces the click
+  // affordance to screen readers while alt stays the accessible name.
+  function markImages() {
+    for (const img of document.querySelectorAll<HTMLImageElement>('main img')) {
+      if (img.closest('a')) continue;
+      img.tabIndex = 0;
+      img.setAttribute('role', 'button');
+    }
+  }
+  markImages();
+  document.addEventListener('astro:page-load', markImages);
+</script>

@@ -1,15 +1,20 @@
 ---
 import '../styles/global.css';
 import WaveBackground from '../components/WaveBackground.astro';
+import Lightbox from '../components/Lightbox.astro';
 import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title: string;
   description?: string;
   ogType?: string;
+  /** Frosted panel behind the content column so text reads calmly over the
+      waves. On by default; the home page opts out to keep the full-bleed
+      first impression. */
+  scrim?: boolean;
 }
 
-const { title, description, ogType = 'website' } = Astro.props;
+const { title, description, ogType = 'website', scrim = true } = Astro.props;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefined;
 ---
 
@@ -44,8 +49,10 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefin
       <a href="/blog">Blog</a>
     </nav>
 
-    <main>
+    <main class:list={[{ scrim }]}>
       <slot />
     </main>
+
+    <Lightbox />
   </body>
 </html>
