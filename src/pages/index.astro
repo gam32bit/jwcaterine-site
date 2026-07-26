@@ -4,14 +4,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <BaseLayout title="Home" description="Personal site of Joe Caterine — side projects, small digital tools, and writing about the web." scrim={false}>
 	<h1 class="site-name">JW Caterine</h1>
-    <p>Web & Content Strategist | Aspiring Digital Toolmaker</p>
+    <p>Web & Content Strategist</p>
 </BaseLayout>
 
 <style>
   .site-name {
     font-family: 'Yellowtail', cursive;
     font-weight: 400;
-    font-size: 4.5rem;
+    /* Viewport-relative below ~692px so "JW Caterine" stays on one line on
+       phones instead of breaking after "JW". The floor is set well under any
+       real device width so the vw term — whose text-width/viewport ratio is
+       constant — governs the whole mobile range. */
+    font-size: clamp(1.5rem, 15vw, 4.5rem);
     color: #e2e8f0;
     line-height: 1.3;
   }

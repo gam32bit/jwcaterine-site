@@ -31,28 +31,50 @@ body {
   padding: 2rem;
 }
 
+/* One content column shared by the nav, the page content, and the frosted
+   scrim panel: --measure of text plus a --gutter on each side. Everything
+   uses the same box + gutter as inset, so every left edge on the site lines
+   up at every width. Only the scrim paints a background out to the gutter
+   edge — for the nav and unscrimmed pages the gutter is just empty space.
+   Changing one of these two values keeps the alignment intact; hard-coding a
+   different padding on any one of the three is what breaks it. */
+:root {
+  --measure: 720px;
+  --gutter: 2.5rem;
+}
+
+nav,
 main {
-  max-width: 720px;
+  max-width: calc(var(--measure) + var(--gutter) * 2);
   margin: 0 auto;
+  padding: 0 var(--gutter);
 }
 
 /* Frosted panel behind the content column (BaseLayout `scrim` prop; the home
    page opts out). No tint — just a blur, so the wave lines soften into hints
-   behind the text without changing the field's brightness. Wider than the
-   720px column by exactly its own horizontal padding, so the text keeps the
-   same measure as unscrimmed pages and stays aligned with the nav — the
-   panel extends past it. */
+   behind the text without changing the field's brightness. Same box as above;
+   this only adds the vertical padding and the blur. */
 main.scrim {
-  max-width: calc(720px + 5rem);
-  padding: 2rem 2.5rem 2.5rem;
+  padding: 1.25rem var(--gutter) 2.5rem;
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   border-radius: 12px;
 }
 
+/* Phones: the 2rem body padding plus the gutter was eating ~65px per side off
+   an already narrow viewport, squeezing the measure. Pull both in. */
 @media (max-width: 640px) {
+  :root {
+    --gutter: 1rem;
+  }
+
+  body {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
   main.scrim {
-    padding: 1.5rem 1.25rem;
+    padding-bottom: 1.5rem;
   }
 }
 
@@ -67,8 +89,7 @@ main a img {
 }
 
 nav {
-  max-width: 720px;
-  margin: 0 auto 2rem;
+  margin-bottom: 1.25rem;
   display: flex;
   gap: 1.5rem;
 }
