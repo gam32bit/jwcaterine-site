@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import WaveBackground from '../components/WaveBackground.astro';
 import Lightbox from '../components/Lightbox.astro';
+import Analytics from '../components/Analytics.astro';
 import { ClientRouter } from 'astro:transitions';
 
 interface Props {
@@ -40,6 +41,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefin
       rel="stylesheet"
     />
     <ClientRouter />
+    <Analytics />
   </head>
   <body>
       <WaveBackground />
