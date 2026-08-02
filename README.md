@@ -38,7 +38,8 @@ src/
 ├── components/
 │   ├── WaveBackground.astro  Canvas ocean-wave animation behind the whole site
 │   ├── Figure.astro          Captioned / floated images for MDX posts
-│   └── Lightbox.astro        Click an image to enlarge it
+│   ├── Lightbox.astro        Click an image to enlarge it
+│   └── Analytics.astro       GA4 tag, production builds only
 ├── pages/
 │   ├── index.astro           Home, with live sliders for the wave physics
 │   ├── about.astro
