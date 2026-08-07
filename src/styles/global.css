@@ -152,8 +152,14 @@ article img {
   max-width: min(var(--fig-w, 100%), 100%);
 }
 
+/* Same as `article img` above, but figures also appear outside <article>
+   (e.g. the About page portrait), where that rule doesn't reach. */
 .figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
   margin: 0 auto;
+  border-radius: 4px;
 }
 
 .figure figcaption {

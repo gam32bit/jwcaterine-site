@@ -1,9 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Figure from '../components/Figure.astro';
+import portrait from '../assets/joe.jpg';
 ---
 
 <BaseLayout title="About">
     <h1>About</h1>
+    <Figure src={portrait} alt="Joe Caterine" float="right" width={220} />
     <p>I'm Joe Caterine, the web and content strategist at William & Mary's VIMS & Batten School, a marine science institute. Since I started in August 2025, I've rolled out a web governance structure supporting 30 web editors, coordinated a content cleanup that removed over 20,000 outdated assets, and led the remediation of web accessibility issues ahead of the (original) April 2026 WCAG 2.1 compliance deadline. I post about my latest VIMS web projects on <a href ="https://www.linkedin.com/in/jwcaterine/">LinkedIn</a>.
     </p>
 
