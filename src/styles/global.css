@@ -108,8 +108,8 @@ a {
 }
 
 h1 {
-  font-size: 3rem;
-  line-height: 1.15;
+  font-size: 2.5rem;
+  line-height: 1.2;
   margin-bottom: 0.5rem;
 }
 
@@ -132,6 +132,39 @@ article::after {
   content: '';
   display: block;
   clear: both;
+}
+
+/* Subheadings previously had no size/spacing rules at all, so they fell back
+   to UA defaults with zero margin (the global `* { margin: 0 }` reset zeroes
+   it) — headings sat flush against the paragraph before and after them.
+   Tighter paragraph leading here too (vs. the 1.7 site default) so a scan
+   down a long post reads as denser blocks broken by clearly-spaced headings.
+   Scoped to `.post-body` (the rendered markdown), not `article` generally —
+   the listing page's post cards and the Related/byline block at the bottom
+   of a post are also `<article>`/inside `<article>` and already carry their
+   own spacing rules that only override individual properties, not the
+   shorthand `margin` below, so a bare `article` selector leaked into both. */
+.post-body h2 {
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 2.4rem 0 0.9rem;
+}
+
+.post-body h3 {
+  font-size: 1.22rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.9rem 0 0.65rem;
+}
+
+.post-body p {
+  line-height: 1.55;
+  margin-bottom: 0.85rem;
+}
+
+.post-body li {
+  margin-bottom: 0.3rem;
 }
 
 article ul,

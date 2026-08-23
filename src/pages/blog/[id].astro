@@ -41,7 +41,9 @@ const related = allPosts
     {post.data.hero && (
       <Image src={post.data.hero} alt={post.data.heroAlt ?? ''} widths={[480, 720, 1080]} sizes="(max-width: 720px) 100vw, 720px" />
     )}
-    <Content />
+    <div class="post-body">
+      <Content />
+    </div>
 
     {related.length > 0 && (
       <aside class="related">
