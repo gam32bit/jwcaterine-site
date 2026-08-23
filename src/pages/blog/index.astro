@@ -56,6 +56,8 @@ const tags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
     ))}
     <p id="no-results" hidden>No posts match — try clearing the search or tag filter.</p>
   </div>
+
+  <p class="byline"><a href="/">JW Caterine</a></p>
 </BaseLayout>
 
 <style>
@@ -188,6 +190,21 @@ const tags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
     font-size: 0.975rem;
     line-height: 1.6;
     margin-bottom: 0;
+  }
+
+  .byline {
+    margin-top: 2.5rem;
+    font-size: 1.25rem;
+  }
+
+  .byline a {
+    font-family: 'Yellowtail', cursive;
+    color: #7d8ea6;
+    text-decoration: none;
+  }
+
+  .byline a:hover {
+    color: #94a3b8;
   }
 </style>
 
