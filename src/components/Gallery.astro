@@ -1,0 +1,61 @@
+---
+import { Image } from 'astro:assets';
+
+interface Props {
+  images: { src: ImageMetadata; alt: string }[];
+  height?: number;
+}
+
+const { images, height = 130 } = Astro.props;
+---
+
+{/*
+  `widths` and `sizes` intentionally disagree. `sizes` describes the small
+  thumbnail box, so the browser downloads a cheap candidate in-page; `widths`
+  reaches all the way up to the source resolution because Lightbox.astro reads
+  `srcset` directly (ignoring `sizes`) and opens the *widest* candidate. Trim
+  the top of `widths` and clicking a thumbnail stops opening a full-size image.
+  Don't wrap these in <a> either — the lightbox skips any image inside a link.
+*/}
+<div class="gallery" style={`--thumb-h:${height}px`}>
+  {images.map(({ src, alt }) => (
+    <span class="gallery__item">
+      <Image src={src} alt={alt} widths={[320, 640, 1080, 2160]} sizes="(max-width: 720px) 45vw, 220px" />
+    </span>
+  ))}
+</div>
+
+<style>
+  .gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 2rem 0;
+  }
+
+  /* The wrapper carries the height so each item's flex basis comes out as
+     height x aspect ratio — charts keep their own proportions and nothing is
+     cropped or letterboxed. */
+  .gallery__item {
+    display: block;
+    height: var(--thumb-h);
+  }
+
+  .gallery__item :global(img) {
+    display: block;
+    height: 100%;
+    width: auto;
+    border-radius: 4px;
+    cursor: zoom-in;
+  }
+
+  /* Overrides the wrapper directly, not `--thumb-h` — the custom property is
+     set inline on .gallery, so a stylesheet rule could never win against it. */
+  @media (max-width: 720px) {
+    .gallery__item {
+      height: 96px;
+    }
+  }
+</style>

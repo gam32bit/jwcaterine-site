@@ -1,0 +1,61 @@
+---
+title: "I made the WJCC redistricting survey searchable"
+date: 2026-08-17
+description: "The Williamsburg-James City County published the survey results related to its ongoing redistricting process as a 3,106-page PDF. I turned the written survey responses into a web page that you can search, filter, and browse."
+draft: false
+tags: [news, data, education]
+---
+
+import Gallery from '../../../components/Gallery.astro';
+import chartSchools from './chart-schools.png';
+import chartRoles from './chart-roles.png';
+import chartPriorities from './chart-priorities.png';
+
+Like many in the Historic Triangle area of Virginia, I've been following the Williamsburg-James City County school division's redistricting process that kicked off over a year ago. At a meeting of the WJCC school board earlier this summer, superintendent Daniel Keever mentioned that the division would be publishing the full results of a survey they had conducted about redistricting by the end of June. I set a reminder knowing I'd want to dig into the data once released, as previously I've found [interesting results in WJCC survey data.](https://jwcaterine.substack.com/p/racial-slurs-redacted-from-jbms-renaming)
+
+Once it was released, I downloaded the PDF and started scrolling through it, but it was over 3,000 pages and I didn't feel like I was getting a good overall picture. I used Claude Code to generate some data visualizations, which were helpful, but I didn't trust AI to parse the written survey responses (as opposed to multiple choice) because it always ends up interpreting things wrong and making stuff up.
+
+<Gallery images={[
+  { src: chartSchools, alt: "Diverging bar chart: position on redistricting by school affiliation, from James River ES at 85% agree down to Stonehouse ES at 47% agree." },
+  { src: chartRoles, alt: "Diverging bar chart: position on redistricting by respondent category — staff 82% agree, parents 64%, other stakeholders 60%, community members 54%, students 47%." },
+  { src: chartPriorities, alt: "Bar chart of which priorities respondents considered most important for new school boundaries, led by neighborhood considerations at 50% and minimizing impact at 41%." },
+]} />
+
+So instead, I had Claude Code create a web page that let me search the written responses, as well as filter them by who was responding (staff, parents, students, etc.), their position on redistricting (agree/disagree) etc. 
+
+As always with AI, it took a bit of back and forth to get it the way I wanted it, but I'm happy with where it is now and wanted to share with others who have been tracking this story and briefly talk about how I made it. I believe this approach can be useful in making other large PDF documents, especially ones of public interest, more accessible, digestable, and understandable to the average person.
+
+## Do not let AI interpret anything
+
+For this project, giving Claude Code the constraint of not allowing the AI to interpret the data from the onset was the key starting point. By giving the model this rule, it proposed the searchable web page for the written responses and built it in minutes. I did add my own ideas (the click-and-drag timeline was entirely mine, for example), but the core structure of the tool that Claude made has remained basically the same since that first prompt.
+
+Did the model still break the rule and misinterpret things? Oh god yes - in my experience Claude wants to editorialize everything, despite having no judgement skills of its own. It added verbose copy (as usual) that included false or misleading claims, like initially claiming the page allowed the user to search every written answer from all 1540 survey responses, even though only 1374 respondents filled out written answers. These errors, while annoying, were pretty easy to catch and fix, and the rule worked where it mattered, by creating a tool that stuck verbatim to the document by pulling the raw text from the PDF, splitting it into individual responses in a way the computer can process, and reproducing those as a public data file.
+
+While extracting text from a PDF is pretty straightforward (the scripts Claude wrote for me essentially just look at the text between two questions in the survey and repeats), there were minor issues, as most PDFs are messy. For instance, the school division did make redactions to names, emails, etc. and in my explorer web page those redactions are reproduced as blank spaces. These problems were worth noting, but did not undermine the core feature of browsing the survey responses.
+
+## My main contribution to this AI tool was UX Design
+
+Even if most of the tool was made by Claude, the edits were entirely mine - and there were a lot. Most were removing things I found unnecessary. In addition to the main response feed, Claude had added a tab to see every mention of a keyword (which was just a different view of the main feed) as well as a word count tab for what were the most common words used in the filtered responses. Testing the tool myself, I did not find these particularly useful or interesting, so I went with the "less is more" principle and cut them.
+
+I also leaned on my journalist experience, updating language to align with how redistricting is being talked about at school board meetings and in the news. Thankfully, I am still a much better writer than Claude in general, so many revisions were to improve explanations of what the tool is and how it works.
+
+There were also a lot of tweaks I made to how the tool looked, based on my personal preference. Claude does not have taste.
+
+Finally, if you are not testing your AI tool, you're contributing to the AI slop heap, in my humble opinion. I was tempted to release the tool sooner after I had checked that it worked and made all the cosmetic changes, but I stopped myself, asking "is this tool actually useful?" - not just in theory, but in practice. 
+
+After playing around with it more, I realized that my browsing of the responses benefited a lot from having the charts I created at the beginning of this project as a starting point, so I decided that in my corresponding Substack post I would include a few of those to help people get started.
+
+UX Design is rooted in empathy, which LLMS do not have. You can outsource coding to them, but you cannot outsource understanding people.
+
+## Being accountable for using AI for civic tech
+
+In Claude's initial build of the tool, it included a section for how the tool worked, but did not mention that it was created with AI. I added that disclaimer and moved it from a footnote to being at the top of the page (admittedly behind a toggle). To not be upfront about that, contributes to a big problem with AI, which is that despite many people using it, there's shame around it, and so we don't talk about it, and that hinders us grappling with this new technology.
+
+I do have mixed feelings using AI, especially living in a state that has [the largest concentration of data centers in the world](https://virginiamercury.com/2026/07/06/how-virginia-became-the-worlds-data-center-capital-and-how-its-going/). Of the many problems with AI and its risks to the economy and environment, for me the root issue is the fact that corporations are in charge of this technology's development. Others have compared this to if the Manhattan Project had been privately run. The mass movement that has risen in reaction to AI and data centers has the potential to push for more regulation, which I wholeheartedly support.
+
+That being said, I do believe one can be critical of AI and advocate for more regulation while still using it as a tool for the greater good, which I hope I've done in this case. If there was a collective boycott of the technology, I think I would probably join that, but in the meantime Claude has made it possible for me to work on projects like this where otherwise I would not have had the time.
+
+In summary, I don't know how I feel about it haha. But happy to talk about it with others! Email me at jwcat757 [at] gmail [dot] com if you'd like to talk AI, civic tech, or anything else. :)
+
+
+
