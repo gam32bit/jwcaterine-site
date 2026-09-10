@@ -43,10 +43,14 @@ const { images, height = 130 } = Astro.props;
     height: var(--thumb-h);
   }
 
+  /* `margin: 0` is load-bearing: global.css's `article img` rule sets
+     `margin: 1.5rem auto`, which inside a fixed-height item pushes the
+     thumbnail out of its box and lopsides the gap around the row. */
   .gallery__item :global(img) {
     display: block;
     height: 100%;
     width: auto;
+    margin: 0;
     border-radius: 4px;
     cursor: zoom-in;
   }

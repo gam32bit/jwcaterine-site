@@ -1,5 +1,5 @@
 ---
-title: "I made the WJCC redistricting survey searchable"
+title: "I made the WJCC redistricting survey results searchable"
 date: 2026-08-17
 description: "The Williamsburg-James City County published the survey results related to its ongoing redistricting process as a 3,106-page PDF. I turned the written survey responses into a web page that you can search, filter, and browse."
 draft: false
@@ -7,6 +7,7 @@ tags: [news, data, education]
 ---
 
 import Gallery from '../../../components/Gallery.astro';
+import CtaButton from '../../../components/CtaButton.astro';
 import chartSchools from './chart-schools.png';
 import chartRoles from './chart-roles.png';
 import chartPriorities from './chart-priorities.png';
@@ -25,13 +26,15 @@ So instead, I had Claude Code create a web page that let me search the written r
 
 As always with AI, it took a bit of back and forth to get it the way I wanted it, but I'm happy with where it is now and wanted to share with others who have been tracking this story and briefly talk about how I made it. I believe this approach can be useful in making other large PDF documents, especially ones of public interest, more accessible, digestable, and understandable to the average person.
 
+<CtaButton href="https://redistricting.jwcaterine.com">Explore WJCC Survey Results</CtaButton>
+
 ## Do not let AI interpret anything
 
 For this project, giving Claude Code the constraint of not allowing the AI to interpret the data from the onset was the key starting point. By giving the model this rule, it proposed the searchable web page for the written responses and built it in minutes. I did add my own ideas (the click-and-drag timeline was entirely mine, for example), but the core structure of the tool that Claude made has remained basically the same since that first prompt.
 
 Did the model still break the rule and misinterpret things? Oh god yes - in my experience Claude wants to editorialize everything, despite having no judgement skills of its own. It added verbose copy (as usual) that included false or misleading claims, like initially claiming the page allowed the user to search every written answer from all 1540 survey responses, even though only 1374 respondents filled out written answers. These errors, while annoying, were pretty easy to catch and fix, and the rule worked where it mattered, by creating a tool that stuck verbatim to the document by pulling the raw text from the PDF, splitting it into individual responses in a way the computer can process, and reproducing those as a public data file.
 
-While extracting text from a PDF is pretty straightforward (the scripts Claude wrote for me essentially just look at the text between two questions in the survey and repeats), there were minor issues, as most PDFs are messy. For instance, the school division did make redactions to names, emails, etc. and in my explorer web page those redactions are reproduced as blank spaces. These problems were worth noting, but did not undermine the core feature of browsing the survey responses.
+While extracting text from a PDF is pretty straightforward ([the scripts Claude wrote for me](https://github.com/gam32bit/redistricting) essentially just look at the text between two questions in the survey and repeats), there were minor issues, as most PDFs are messy. For instance, the school division did make redactions to names, emails, etc. and in my explorer web page those redactions are reproduced as blank spaces. These problems were worth noting, but did not undermine the core feature of browsing the survey responses.
 
 ## My main contribution to this AI tool was UX Design
 
@@ -47,7 +50,7 @@ After playing around with it more, I realized that my browsing of the responses 
 
 UX Design is rooted in empathy, which LLMS do not have. You can outsource coding to them, but you cannot outsource understanding people.
 
-## Being accountable for using AI for civic tech
+## AI accountability
 
 In Claude's initial build of the tool, it included a section for how the tool worked, but did not mention that it was created with AI. I added that disclaimer and moved it from a footnote to being at the top of the page (admittedly behind a toggle). To not be upfront about that, contributes to a big problem with AI, which is that despite many people using it, there's shame around it, and so we don't talk about it, and that hinders us grappling with this new technology.
 
