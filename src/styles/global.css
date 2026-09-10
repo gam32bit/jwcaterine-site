@@ -226,3 +226,41 @@ article img {
     margin: 1.5rem auto;
   }
 }
+
+/* Markdown tables. Numeric columns read better right-aligned, so everything
+   but the first (label) column is, and `white-space: nowrap` keeps a value from
+   breaking across lines. Headers are exempt: they're the widest cells by far
+   ("Somewhat disagree" against a two-digit count), so letting them wrap is what
+   keeps an eight-column table inside the prose column. Anything still too wide
+   scrolls in whatever wraps the table — see Details.astro's `.disclosure__body`. */
+.post-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0 1.5rem;
+  font-size: 0.8rem;
+}
+
+.post-body th,
+.post-body td {
+  padding: 0.4rem 0.45rem;
+  border-bottom: 1px solid #16283f;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.post-body th:first-child,
+.post-body td:first-child {
+  text-align: left;
+}
+
+.post-body thead th {
+  color: #cbe4f5;
+  font-weight: 600;
+  white-space: normal;
+  vertical-align: bottom;
+  border-bottom: 1px solid #2f5a86;
+}
+
+.post-body tbody tr:last-child td {
+  border-bottom: none;
+}
