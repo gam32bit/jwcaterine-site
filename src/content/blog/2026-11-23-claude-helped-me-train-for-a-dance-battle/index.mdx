@@ -9,6 +9,7 @@ tags: [AI, coding, dance]
 import Gallery from '../../../components/Gallery.astro';
 import appMoveView from './app-move-view.png';
 import appGalleryView from './app-gallery-view.png';
+import appBattleRoundView from './app-battle-round-view.png';
 
 I started dancing competitively almost, god, 17 years ago? 🤮 And over time, I've developed something of a training routine. 
 
@@ -44,6 +45,10 @@ Thinking about this new feature brought to mind questions I (and I'm sure other 
 For me, the answers to those questions have changed over time. When I was first starting out, I was more deliberate - I'd decide which moves I was going to use in advance each round, saving my best moves for the later battles as the competition got better. But as I got more experience, I learned that this approach impairs musicality. My belief now is that if a move is right for a particular moment in a song, better to do it then and there rather than hold back. But I'll admit it is still a challenge to go into a round with no moves in mind. 
 
 So I described what I wanted to Claude: to be able to select from the main app gallery moves that were ready to be battle round tested, and then those would move to a second gallery, where I could check them off as I incorporated them into the freestyle. Also added a timer for 3 minutes per battle round. As I was testing, I followed up with Claude to make a counter to tell me how many moves I had left.
+
+<Gallery height={320} mobileHeight={260} images={[
+  { src: appBattleRoundView, alt: "Screenshot of the app's battle round view: a 4 of 4 left counter, a 3:00 round timer with a Start round button, and a grid of the four moves selected for the round, Move 03, 04, 08, and 12, each with a thumbnail of me mid-move." },
+]} />
 
 I designed this battle round feature for training, but I ended up using it as the event itself.
 
