@@ -4,9 +4,12 @@ import { Image } from 'astro:assets';
 interface Props {
   images: { src: ImageMetadata; alt: string }[];
   height?: number;
+  /* Thumbnail height under 720px. The 96px default suits wide charts; tall
+     phone screenshots need more or they shrink to a sliver. */
+  mobileHeight?: number;
 }
 
-const { images, height = 130 } = Astro.props;
+const { images, height = 130, mobileHeight = 96 } = Astro.props;
 ---
 
 {/*
@@ -17,7 +20,7 @@ const { images, height = 130 } = Astro.props;
   the top of `widths` and clicking a thumbnail stops opening a full-size image.
   Don't wrap these in <a> either — the lightbox skips any image inside a link.
 */}
-<div class="gallery" style={`--thumb-h:${height}px`}>
+<div class="gallery" style={`--thumb-h:${height}px;--thumb-h-mobile:${mobileHeight}px`}>
   {images.map(({ src, alt }) => (
     <span class="gallery__item">
       <Image src={src} alt={alt} widths={[320, 640, 1080, 2160]} sizes="(max-width: 720px) 45vw, 220px" />
@@ -59,7 +62,7 @@ const { images, height = 130 } = Astro.props;
      set inline on .gallery, so a stylesheet rule could never win against it. */
   @media (max-width: 720px) {
     .gallery__item {
-      height: 96px;
+      height: var(--thumb-h-mobile);
     }
   }
 </style>

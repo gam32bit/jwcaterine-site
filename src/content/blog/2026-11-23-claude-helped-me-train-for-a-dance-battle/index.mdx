@@ -1,0 +1,76 @@
+---
+title: "Claude Helped Me Train for a Dance Battle"
+date: 2026-11-23
+description: "I built a personal app with Claude to organize my dance training clips. Then a battle-round feature I added for practice ended up guiding me through the competition itself."
+draft: false
+tags: [AI, coding, dance]
+---
+
+import Gallery from '../../../components/Gallery.astro';
+import appMoveView from './app-move-view.png';
+import appGalleryView from './app-gallery-view.png';
+
+I started dancing competitively almost, god, 17 years ago? 🤮 And over time, I've developed something of a training routine. 
+
+It wasn't long after I started learning [Electro Dance](https://en.wikipedia.org/wiki/Electro_dance) that I used my smart phone to record myself dancing so I could watch my freestyle or study my choreo. I wonder how dancers reviewed their material before video recording was so easy. Mirrors, I guess?
+
+After a certain number of recordings tho, mixed with all the other photos and videos I have on my phone, things got disorganized. Ideally, I wanted to be able, at the start of a training session, to see, visually, which moves I needed to practice, and be able to watch recordings of the last time I practiced those individual moves. Then, I wanted to be able to record new training clips of that particular move that I could easily reference later. 
+
+I've been aware of this need for years, but until recently didn't have any (easy, fast) way to implement. 
+
+That's where Claude came in. I've used Claude for my [civic tech side projects](/blog/2026-08-17-i-made-the-wjcc-redistricting-survey-searchable/) and for [creating silly games for my friends and family](/blog/2026-06-30-tiny-games-with-claude/), but it wasn't until a couple of months ago, as I was preparing for my first dance competition in a while, that I thought, hey, why don't I try and create a personal app for this? So I did, and it turned out pretty good, albeit with some hiccups along the way.
+
+## The initial build with Claude
+
+The last time I trained was for an event in Montreal in March 2025. Fortunately, I had saved clips of all the moves that I had prepared for that event on my external hard drive. Looking over those was helpful in jogging my memory and gave me material to start on the app. I told Claude the ideal training loop I described above and gave it the clips, and it produced a decent prototype in one shot.
+
+<Gallery height={320} mobileHeight={260} images={[
+  { src: appMoveView, alt: "Screenshot of the app's page for a single move, titled Move 02: a 31-second practice clip of me in a wide squat with one arm pointing up, a Choose thumbnail link, a Not Started / In Progress / Ready status toggle, and a 5:00 timer with a Practice 5 min button." },
+  { src: appGalleryView, alt: "Screenshot of the app's main Dance Moves gallery: Battle round, Sessions, and + New move buttons above a two-column grid of video thumbnails labeled Move 01 through Move 04, each showing me mid-move with a Not Started status tag." },
+]} />
+
+However, during the first test run I ran into issues. At first it was great and worked exactly as I had hoped. I took some notes about minor tweaks like not needing an offline option (which I would later regret on the plane to the event) and that it would be cool to have a built in timer for tracking how long I worked on one move. Despite these minor shortcomings, overall the app worked fine.
+
+Until I got to the fifth or sixth move. Then, the practice clip feature stopped working, and shortly after so did the notes feature, and then the app wouldn't load at all - uh oh!
+
+I asked Claude if it would make sense to create a database since I figured it was the size of the video clip files that was causing it to crash, but it diagnosed it as another bug in the code. Importantly it also wrote better error messages for when things broke so I'd be able to better diagnose in the future. Still not sure if it was right about that, but I haven't had it crash on me since.
+
+## Adding battle mode feature
+
+In the couple weeks leading up to the event, I realized that I needed additional functionality from the app. Drilling moves enough makes it possible to do them on beat, but incorporating them into a freestyle is a different story. I wanted a way to select a few moves for a session and then do some freestyling. After freestyling, I'd mark which moves I had used so I knew which remained to work in. 
+
+Thinking about this new feature brought to mind questions I (and I'm sure other dancers) often get - how much of what you're doing is choreo and how much are you just making up? Do you know what moves you're going to do ahead of time? 
+
+For me, the answers to those questions have changed over time. When I was first starting out, I was more deliberate - I'd decide which moves I was going to use in advance each round, saving my best moves for the later battles as the competition got better. But as I got more experience, I learned that this approach impairs musicality. My belief now is that if a move is right for a particular moment in a song, better to do it then and there rather than hold back. But I'll admit it is still a challenge to go into a round with no moves in mind. 
+
+So I described what I wanted to Claude: to be able to select from the main app gallery moves that were ready to be battle round tested, and then those would move to a second gallery, where I could check them off as I incorporated them into the freestyle. Also added a timer for 3 minutes per battle round. As I was testing, I followed up with Claude to make a counter to tell me how many moves I had left.
+
+I designed this battle round feature for training, but I ended up using it as the event itself.
+
+### What Claude couldn't do
+
+Before I get into the event, one note on what Claude couldn't do. In the gallery of moves, for the thumbnail Claude just showed the start of the clip, which was usually just me turning my phone camera on - not very helpful in distinguishing one move from the other. 
+
+Because I didn't trust Claude to judge what was a good thumbnail, I had to go through all the moves myself and take screenshots that were evocative of the move in the clip, and then I gave all of those to Claude to make the thumbnails. Took a half hour or so, but it was one of those tasks that required a human eye, specifically my eye. 
+
+It's possible I could have asked Claude to try and do stills of what it thought were the moves, but to me that sounded like I would have to go back and forth troubleshooting, and I thought it would just be easier if I did it myself. I knew best which thumbnail was going to remind me of a particular move. 
+
+## Using my Claude-built app at the dance event
+
+The morning of the event, I used the app to review my moves and practice a few that I thought still needed some polishing. Got lunch with a buddy at [Emilia's](https://www.emiliasbtx.com/), then it was off to the event in downtown Brownsville, where a SpaceX festival was also happening.
+
+Even though I hadn't planned on using the app at the event, it came naturally. Before my first battle, I referenced the gallery of moves so that I had them fresh in my mind. After I won that battle, I went ahead and checked off the moves I had used (I couldn't remember if I did one particular move, so I checked it off just to be safe).
+
+I did the same thing for my second battle, which I also won. Next up was the semifinal, and looking at the app's gallery, I got a burst of confidence just seeing how many moves I had left. Don't think I would have had that feeling without the app.
+
+My semifinal went to a tiebreaker, but I lost to Serg (shout out Serg!). Overall, the event revived my passion for dance, and I'm already training harder for the next event, in part thanks to this Claude-made app.
+
+<iframe width="640" height="360" src="https://www.youtube.com/embed/DgDR5VQREVE" title="Sergio vs Gambit | Electro Semi Final | Sync&Beat Next Gen" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style="display:block;max-width:100%;margin:1.5rem auto;border:0;border-radius:4px;"></iframe>
+
+## Conclusion
+
+I had created this app to better manage my video clips of moves so that I could drill them better. But through developing it with Claude, I added another feature to practice battle rounds, which also ended up serving me at the dance event itself, something I didn't anticipate.
+
+Since the event, I've added another mode for idea capture. I typically will record long videos of myself just messing around, and then if a cool move idea comes up I'll clip it. Adding this process to the app makes those easier to keep track of and feed into my training pipeline.
+
+I've got my sights on some competitions next Spring and Summer, and with this app's help, I intend to win.
