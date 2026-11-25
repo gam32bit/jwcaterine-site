@@ -53,6 +53,7 @@ const ogImage = Astro.site ? new URL('/og.png', Astro.site) : undefined;
     />
     <ClientRouter />
     <Analytics />
+    <slot name="head" />
   </head>
   <body>
       <WaveBackground />
