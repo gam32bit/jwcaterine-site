@@ -1,5 +1,5 @@
 ---
-title: Does the First Impression Rose Matter (Statistically)?
+title: "Does The Bachelor's First Impression Rose Matter? A Statistical Test"
 date: 2023-01-23
 description: Using a randomization test on contestant data to find out whether winning The Bachelor's First Impression Rose actually predicts going farther on the show.
 draft: false
